@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VibeStream - Purple Video Hub</title>
+    <style>
+        :root {
+            --bg-deep: #090514;
+            --bg-surface: #140d24;
+            --bg-card: #1d1433;
+            --primary: #8b5cf6;
+            --primary-hover: #a78bfa;
+            --accent: #d946ef;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* --- Header / Navbar --- */
+        header {
+            background-color: var(--bg-surface);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 1px solid #2e1f4d;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            cursor: pointer;
+        }
+
+        .search-bar {
+            width: 40%;
+            position: relative;
+        }
+
+        .search-bar input {
+            width: 100%;
+            padding: 0.6rem 1.2rem;
+            background-color: var(--bg-card);
+            border: 1px solid #3b2a63;
+            border-radius: 20px;
+            color: var(--text-main);
+            outline: none;
+            transition: var(--transition-smooth);
+        }
+
+        .search-bar input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+        }
+
+        /* --- Main Layout --- */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* --- Dynamic Player Showcase (Hero) --- */
+        #player-showcase {
+            width: 100%;
+            background-color: var(--bg-surface);
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 2.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: none; /* Hidden until a video is selected */
+            animation: fadeIn 0.5s ease;
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            height: 0;
+            background: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .player-details {
+            padding: 1.5rem;
+        }
+
+        .player-title {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* --- Categories Row --- */
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .categories-wrapper {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .categories-wrapper::-webkit-scrollbar {
+            height: 6px;
+        }
+        .categories-wrapper::-webkit-scrollbar-thumb {
+            background: var(--bg-card);
+            border-radius: 10px;
+        }
+
+        .category-chip {
+            background-color: var(--bg-surface);
+            padding: 0.5rem 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            border: 1px solid #2e1f4d;
+            white-space: nowrap;
+            transition: var(--transition-smooth);
+        }
+
+        .category-chip:hover, .category-chip.active {
+            background-color: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* --- Video Grid --- */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 2rem;
+        }
+
+        .video-card {
+            background-color: var(--bg-surface);
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            border: 1px solid transparent;
+            position: relative;
+        }
+
+        .video-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            border-color: #4c2f8c;
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.15);
+        }
+
+        .thumbnail-box {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 aspect */
+            background-color: #000;
+        }
+
+        .thumbnail-box img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition-smooth);
+        }
+
+        .video-card:hover .thumbnail-box img {
+            opacity: 0.85;
+        }
+
+        .video-info {
+            padding: 1rem;
+        }
+
+        .video-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.4rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-desc {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.8rem;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            background-color: var(--bg-card);
+            color: var(--primary-hover);
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .featured-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(45deg, var(--accent), var(--primary));
+            color: white;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            z-index: 10;
+            text-transform: uppercase;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+
+        /* --- Animations --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-pop {
+            animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) both;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" onclick="window.location.reload()">VibeStream</div>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Search videos or tags...">
+        </div>
+        <div style="width: 80px;"></div> </header>
+
+    <main>
+        <section id="player-showcase">
+            <div class="video-container">
+                <iframe id="mainPlayer" src="" allowfullscreen></iframe>
+            </div>
+            <div class="player-details">
+                <h1 id="playerTitle" class="player-title">Video Title</h1>
+                <p id="playerDesc" style="color: var(--text-muted);"></p>
+                <div id="playerTags" class="tag-container" style="margin-top: 1rem;"></div>
+            </div>
+        </section>
+
+        <h2 class="section-title">Categories</h2>
+        <section class="categories-wrapper" id="categoriesContainer">
+            <div class="category-chip active" onclick="filterCategory('All')">All Feed</div>
+        </section>
+
+        <h2 class="section-title">Explore Videos</h2>
+        <section class="video-grid" id="videoGridContainer">
+            </section>
+    </main>
+
+    <script>
+        let allVideos = [];
+        let allCategories = [];
+        let currentFilter = 'All';
+
+        // 1. Core Data Retrieval Pipeline
+        async function dynamicLoadHub() {
+            try {
+                // Instantly fetch changes from local JSON updates
+                const [categoriesResponse, videosResponse] = await Promise.all([
+                    fetch('category.json'),
+                    fetch('videos.json')
+                ]);
+
+                allCategories = await categoriesResponse.json();
+                allVideos = await videosResponse.json();
+
+                renderCategoryFilters();
+                renderVideoGrid(allVideos);
+                
+            } catch (error) {
+                console.error("Data binding failed. Please run inside a web server environment.", error);
+                document.getElementById('videoGridContainer').innerHTML = `
+                    <p style="grid-column: 1/-1; text-align: center; color: var(--accent);">
+                        Error loading JSON files automatically. Ensure you are using a local web server (e.g. Live Server).
+                    </p>`;
+            }
+        }
+
+        // 2. Render Category Chips
+        function renderCategoryFilters() {
+            const container = document.getElementById('categoriesContainer');
+            allCategories.forEach(cat => {
+                const chip = document.createElement('div');
+                chip.className = 'category-chip';
+                chip.textContent = cat.name;
+                chip.onclick = () => filterCategory(cat.name, chip);
+                container.appendChild(chip);
+            });
+        }
+
+        // 3. Render and Animate Video Feed Grid
+        function renderVideoGrid(videosToRender) {
+            const grid = document.getElementById('videoGridContainer');
+            grid.innerHTML = '';
+
+            if(videosToRender.length === 0) {
+                grid.innerHTML = `<p style="grid-column: 1/-1; text-align: center; color: var(--text-muted);">No videos match your view criteria.</p>`;
+                return;
+            }
+
+            videosToRender.forEach((video, index) => {
+                const card = document.createElement('div');
+                card.className = 'video-card animate-pop';
+                card.style.animationDelay = `${index * 0.05}s`; // Cascading staggered animation entrance
+
+                // Parse tags array
+                const tagsHTML = video.tags.map(tag => `<span class="tag">#${tag}</span>`).join('');
+                // Parse feature configuration
+                const featuredBadge = video.featured ? `<div class="featured-badge">Featured</div>` : '';
+
+                card.innerHTML = `
+                    ${featuredBadge}
+                    <div class="thumbnail-box">
+                        <img src="${video.thumb}" alt="${video.title}">
+                    </div>
+                    <div class="video-info">
+                        <h3 class="video-title">${video.title}</h3>
+                        <p class="video-desc">${video.desc}</p>
+                        <div class="tag-container">${tagsHTML}</div>
+                    </div>
+                `;
+
+                card.onclick = () => launchVideoPlayer(video);
+                grid.appendChild(card);
+            });
+        }
+
+        // 4. Interactive State Actions: Active Stream Player Action
+        function launchVideoPlayer(video) {
+            const showcase = document.getElementById('player-showcase');
+            const player = document.getElementById('mainPlayer');
+            
+            player.src = video.src;
+            document.getElementById('playerTitle').textContent = video.title;
+            document.getElementById('playerDesc').textContent = video.desc;
+            
+            document.getElementById('playerTags').innerHTML = video.tags
+                .map(tag => `<span class="tag">#${tag}</span>`).join('');
+
+            showcase.style.display = 'block';
+            showcase.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // 5. Filtering Mechanisms
+        function filterCategory(categoryName, element = null) {
+            currentFilter = categoryName;
+            
+            // Toggle active styles
+            document.querySelectorAll('.category-chip').forEach(chip => chip.classList.remove('active'));
+            if(element) {
+                element.classList.add('active');
+            } else {
+                document.querySelector('.category-chip').classList.add('active');
+            }
+
+            executeCombinedFilters();
+        }
+
+        function executeCombinedFilters() {
+            const searchQuery = document.getElementById('searchInput').value.toLowerCase();
+            
+            const filtered = allVideos.filter(video => {
+                const matchesCategory = currentFilter === 'All' || video.categories.includes(currentFilter);
+                const matchesSearch = video.title.toLowerCase().includes(searchQuery) || 
+                                      video.desc.toLowerCase().includes(searchQuery) ||
+                                      video.tags.some(tag => tag.toLowerCase().includes(searchQuery));
+                return matchesCategory && matchesSearch;
+            });
+
+            renderVideoGrid(filtered);
+        }
+
+        // Real-time key up listener for immediate reactive live filtering
+        document.getElementById('searchInput').addEventListener('input', executeCombinedFilters);
+
+        // Application Fire-up
+        window.addEventListener('DOMContentLoaded', dynamicLoadHub);
+    </script>
+</body>
+</html>
